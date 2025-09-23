@@ -2,6 +2,7 @@ version: '3'
 
 volumes:
   mysql-data:
+  redis-data:
 
 services:
   web-backend:
@@ -16,8 +17,14 @@ services:
     working_dir: /var/www/html
     environment:
       APP_ENV: local
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DATABASE: ${REDIS_DATABASE}
     depends_on:
       - web-mysql
+      - web-redis
     restart: always
 
   web-mysql:
@@ -33,6 +40,18 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: 1
+
+  web-redis:
+    container_name: web-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: redis-server --appendonly yes
+    restart: always
 
   web-phpmyadmin:
     container_name: phpmyadmin
